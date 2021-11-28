@@ -3,7 +3,7 @@ module Scan where
 open import Level using (0ℓ)
 
 open import Function using (id; _∘_; _↔_; mk↔′)
-open import Data.Product renaming (map to map×; map₁ to map×₁)
+open import Data.Product renaming (map to map×; map₁ to map×₁; map₂ to map×₂)
 open import Data.Empty
 open import Data.Unit
 open import Data.Sum renaming (map to map⊎)
@@ -17,6 +17,9 @@ open import Data.Vec.Properties using (++-injective; unfold-take; unfold-drop)
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (trans to _;_)
 open ≡-Reasoning
 open import Algebra.Bundles
+
+-- Most of the content below will be moved into other top-level modules and
+-- shared with FFT and other algorithm families.
 
 infix 6 _`+_
 infix 7 _`×_
@@ -204,6 +207,18 @@ module InductiveTrie where
     _⊗_ : T A s → T A t → T A (s `+ t)
     ◎ : T (T A t) s → T A (s `× t)
 
+  un1̇ : T A `⊥ → ⊤
+  un1̇ 1̇ = tt
+
+  unI : T A `⊤ → A
+  unI (I x) = x
+
+  un⊗ : T A (s `+ t) → T A s × T A t
+  un⊗ (u ⊗ v) = u , v
+
+  un◎ : T A (s `× t) → T (T A t) s
+  un◎ (◎ w) = w
+
   infixl 1 _!_
 
   at _!_ : T A s → Index s → A
@@ -346,6 +361,32 @@ module InductiveTrie where
           tweak z = map (z ∙_)
       in
         ◎ (zipWith tweak zs′ w′) , z′
+    
+    unzip′ : T (T A (t `+ `⊤)) s → T (T A t) s × T A s
+    unzip′ = map×₂ (map unI) ∘ unzip ∘ map un⊗
+
+    -- T (T A (t `+ `⊤)) s         -- map un⊗
+    -- T (T A t × T A `⊤) s        -- unzip
+    -- T (T A t) s × T (T A `⊤) s  -- map×₂ (map unI)
+    -- T (T A t) s × T A s
+
+    infix 7 _⊗̂_
+    pattern _⊗̂_ u x = u ⊗ I x
+
+    scanˡ′ : T X s → T X (s `+ `⊤)
+    scanˡ′ 1̇ = 1̇ ⊗ I ε
+    scanˡ′ (I x) = I ε ⊗̂ x
+    scanˡ′ (u ⊗ v) with u′ ⊗̂ x ← scanˡ′ u
+                      | v′ ⊗̂ y ← scanˡ′ v =
+      (u′ ⊗ map (x ∙_) v′) ⊗̂ (x ∙ y)
+    scanˡ′ (◎ w) with w′ , zs  ← unzip′ (map scanˡ′ w)
+                 with zs′ ⊗̂ z′ ← scanˡ′ zs =
+      let tweak z = map (z ∙_) in
+        ◎ (zipWith tweak zs′ w′) ⊗̂ z′
+
+        -- ◎ (zipWith (λ z → map (z ∙_)) zs′ w′) ⊗̂ z′
+
+        -- ◎ (zipWith (map ∘ _∙_) zs′ w′) ⊗̂ z′
 
 -- Tries as recursive type family. This choice avoids a new data type, but we
 -- can no longer pattern-match over tries, and shapes arguments must be
@@ -393,7 +434,8 @@ module RecursiveTrie where
 
     open Monoid M renaming (Carrier to X)
 
-    scanˡ : ∀ s → T X s → T X s × X
+    -- scanˡ : ∀ s → T X s → T X s × X
+    scanˡ : ∀ s → T X s → T X (s `+ `⊤)
     scanˡ `⊥ tt = tt , ε
     scanˡ `⊤ x = ε , x
     scanˡ (s `+ t) (u , v) =
@@ -402,8 +444,10 @@ module RecursiveTrie where
       in
         (u′ , (map t (x ∙_) v′)) , x ∙ y
     scanˡ (s `× t) w =
-      let w′ , zs = unzip s (map s (scanˡ t) w)
+      let w′ , zs  = unzip s (map s (scanˡ t) w)
           zs′ , z′ = scanˡ s zs
-          tweak z = map t (z ∙_)
+          tweak z  = map t (z ∙_)
       in
         zipWith s tweak zs′ w′ , z′
+
+    -- Note that the signature variants now agree in meaning.
