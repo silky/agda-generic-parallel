@@ -16,6 +16,7 @@ open import Data.Vec hiding ([_]; zipWith; transpose; unzip)
 open import Data.Vec.Properties using (++-injective; unfold-take; unfold-drop)
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (trans to _;_)
 open ≡-Reasoning
+open import Algebra.Bundles
 
 infix 6 _`+_
 infix 7 _`×_
@@ -180,6 +181,17 @@ group′-concat (suc m) n (xs ∷ xss) =
   ∎
 
 
+module scan-vec {ℓ} (M : Monoid 0ℓ ℓ) where
+
+  open Monoid M renaming (Carrier to X)
+
+  scanˡ : ∀ {n} → Vec X n → Vec X n × X
+  scanˡ = go ε
+   where
+     go : ∀ (x : X) {n} → Vec X n → Vec X n × X
+     go acc [] = [] , acc
+     go acc (x ∷ xs) = map×₁ (acc ∷_) (go acc xs)
+
 
 -- Tries (Naperian functors) as inductive type family. We can then pattern-match
 -- over tries and leave shape arguments implicit.
@@ -226,18 +238,6 @@ module InductiveTrie where
   map-∘ {`⊤} (I _) = refl
   map-∘ {s `+ t} (u ⊗ v) = cong₂ _⊗_ (map-∘ u) (map-∘ v)
   map-∘ {s `× t} (◎ w) = cong ◎ (map-∘ w ; map-cong map-∘ w)
-
-{-
-
-Goal: map (map g) (map (map f) w) ≡ map (map (g ∘ f)) w
-
-w : T (T A t) s
-
-map (map g) (map (map f) w)
-map (map g ∘ map f) w
-map (map (g ∘ f)) w
-
--}
 
   zipWith : (A → B → C) → T A s → T B s → T C s
   zipWith f 1̇ 1̇ = 1̇
@@ -328,23 +328,6 @@ map (map (g ∘ f)) w
          ◎ w
        ∎
 
--- group′-concat : ∀ m n (xss : Vec (Vec A n) m) → group′ m n (concat xss) ≡ xss
-
-
-     -- from {s `× t} xs = ◎ (map from (from (group′ (# s) (# t) xs)))
-
-
--- Goal: (from (concat (to (map to w)))
---        | group (# s) (# t) (concat (to (map to w))))
---       ≡ ◎ w
-
-
-     -- from {s `× t} xs with group (# s) (# t) xs
-     -- ... | xss , refl = ◎ (map from (from xss))
-
-
-  open import Algebra.Bundles
-
   module scanˡ {ℓ} (M : Monoid 0ℓ ℓ) where
 
     open Monoid M renaming (Carrier to X)
@@ -363,13 +346,6 @@ map (map (g ∘ f)) w
           tweak z = map (z ∙_)
       in
         ◎ (zipWith tweak zs′ w′) , z′
-
-    vscanˡ : ∀ {n} → Vec X n → Vec X n × X
-    vscanˡ = go ε
-     where
-       go : ∀ (x : X) {n} → Vec X n → Vec X n × X
-       go acc [] = [] , acc
-       go acc (x ∷ xs) = map×₁ (acc ∷_) (go acc xs)
 
 -- Tries as recursive type family. This choice avoids a new data type, but we
 -- can no longer pattern-match over tries, and shapes arguments must be
@@ -412,8 +388,6 @@ module RecursiveTrie where
   unzip `⊤ (x , y) = x , y
   unzip (s `+ t) (u , v) = transpose (unzip s u , unzip t v)
   unzip (s `× t) w = unzip s (map s (unzip t) w)
-
-  open import Algebra.Bundles
 
   module scanˡ {ℓ} (M : Monoid 0ℓ ℓ) where
 
