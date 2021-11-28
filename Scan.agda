@@ -350,14 +350,14 @@ map (map (g ∘ f)) w
     open Monoid M renaming (Carrier to X)
 
     scanˡ : T X s → T X s × X
-    scanˡ {`⊥} 1̇ = 1̇ , ε
-    scanˡ {`⊤} (I x) = I ε , x
-    scanˡ {s `+ t} (u ⊗ v) =
+    scanˡ 1̇ = 1̇ , ε
+    scanˡ (I x) = I ε , x
+    scanˡ (u ⊗ v) =
       let u′ , x = scanˡ u
           v′ , y = scanˡ v
       in
         u′ ⊗ map (x ∙_) v′ , x ∙ y
-    scanˡ {s `× t} (◎ w) =
+    scanˡ (◎ w) =
       let w′ , zs = unzip (map scanˡ w)
           zs′ , z′ = scanˡ zs
           tweak z = map (z ∙_)
