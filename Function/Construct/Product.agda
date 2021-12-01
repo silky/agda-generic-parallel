@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- The Agda standard library
+-- The Agda standard library (intended)
 --
 -- Product-monoidal combination of functional properties
 ------------------------------------------------------------------------
@@ -166,48 +166,55 @@ module _ {R : Setoid a ℓ₁} {S : Setoid b ℓ₂} {T : Setoid c ℓ₃} {U : 
     RS = ×-setoid R S
     TU = ×-setoid T U
 
+    ≈₁ = ≈ R
+    ≈₂ = ≈ S
+    ≈₃ = ≈ T
+    ≈₄ = ≈ U
+
+    cong≈ = congruent ≈₁ ≈₂ ≈₃ ≈₄
+
   function : Func R T → Func S U → Func RS TU
   function f g = record
     { f    = map F.f G.f
-    ; cong = congruent (≈ R) (≈ S) (≈ T) (≈ U) F.cong G.cong
+    ; cong = cong≈ F.cong G.cong
     } where module F = Func f; module G = Func g
 
   injection : Injection R T → Injection S U → Injection RS TU
   injection inj₁ inj₂ = record
     { f         = map F.f G.f
-    ; cong      = congruent (≈ R) (≈ S) (≈ T) (≈ U) F.cong G.cong
-    ; injective = injective (≈ R) (≈ S) (≈ T) (≈ U) F.injective G.injective
+    ; cong      = cong≈ F.cong G.cong
+    ; injective = injective ≈₁ ≈₂ ≈₃ ≈₄ F.injective G.injective
     } where module F = Injection inj₁; module G = Injection inj₂
 
   surjection : Surjection R T → Surjection S U → Surjection RS TU
   surjection surj₁ surj₂ = record
     { f          = map F.f G.f
-    ; cong       = congruent (≈ R) (≈ S) (≈ T) (≈ U) F.cong G.cong
-    ; surjective = surjective (≈ R) (≈ S) (≈ T) (≈ U) F.surjective G.surjective
+    ; cong       = cong≈ F.cong G.cong
+    ; surjective = surjective ≈₁ ≈₂ ≈₃ ≈₄ F.surjective G.surjective
     } where module F = Surjection surj₁; module G = Surjection surj₂
 
   bijection : Bijection R T → Bijection S U → Bijection RS TU
   bijection bij₁ bij₂ = record
     { f         = map F.f G.f
-    ; cong      = congruent (≈ R) (≈ S) (≈ T) (≈ U) F.cong G.cong
-    ; bijective = bijective (≈ R) (≈ S) (≈ T) (≈ U) F.bijective G.bijective
+    ; cong      = cong≈ F.cong G.cong
+    ; bijective = bijective ≈₁ ≈₂ ≈₃ ≈₄ F.bijective G.bijective
     } where module F = Bijection bij₁; module G = Bijection bij₂
 
   equivalence : Equivalence R T → Equivalence S U → Equivalence RS TU
   equivalence equiv₁ equiv₂ = record
-    { f        = map F.f G.f
-    ; g        = map F.g G.g
-    ; cong₁    = congruent (≈ R) (≈ S) (≈ T) (≈ U) F.cong₁ G.cong₁
-    ; cong₂    = congruent (≈ T) (≈ U) (≈ R) (≈ S) F.cong₂ G.cong₂
+    { f     = map F.f G.f
+    ; g     = map F.g G.g
+    ; cong₁ = cong≈ F.cong₁ G.cong₁
+    ; cong₂ = congruent ≈₃ ≈₄ ≈₁ ≈₂ F.cong₂ G.cong₂
     } where module F = Equivalence equiv₁; module G = Equivalence equiv₂
 
   leftInverse : LeftInverse R T → LeftInverse S U → LeftInverse RS TU
   leftInverse invˡ₁ invˡ₂ = record
     { f        = map F.f G.f
     ; g        = map F.g G.g
-    ; cong₁    = congruent (≈ R) (≈ S) (≈ T) (≈ U) F.cong₁ G.cong₁
-    ; cong₂    = congruent (≈ T) (≈ U) (≈ R) (≈ S) F.cong₂ G.cong₂
-    ; inverseˡ = inverseˡ  (≈ R) (≈ S) (≈ T) (≈ U) {f = F.f} {g = G.f}
+    ; cong₁    = cong≈ F.cong₁ G.cong₁
+    ; cong₂    = congruent ≈₃ ≈₄ ≈₁ ≈₂ F.cong₂ G.cong₂
+    ; inverseˡ = inverseˡ  ≈₁ ≈₂ ≈₃ ≈₄ {f = F.f} {g = G.f}
                    F.inverseˡ G.inverseˡ
     } where module F = LeftInverse invˡ₁; module G = LeftInverse invˡ₂
 
@@ -215,9 +222,9 @@ module _ {R : Setoid a ℓ₁} {S : Setoid b ℓ₂} {T : Setoid c ℓ₃} {U : 
   rightInverse invʳ₁ invʳ₂ = record
     { f        = map F.f G.f
     ; g        = map F.g G.g
-    ; cong₁    = congruent (≈ R) (≈ S) (≈ T) (≈ U) F.cong₁ G.cong₁
-    ; cong₂    = congruent (≈ T) (≈ U) (≈ R) (≈ S) F.cong₂ G.cong₂
-    ; inverseʳ = inverseʳ  (≈ R) (≈ S) (≈ T) (≈ U) {f⁻¹ = F.g} {g⁻¹ = G.g}
+    ; cong₁    = cong≈ F.cong₁ G.cong₁
+    ; cong₂    = congruent ≈₃ ≈₄ ≈₁ ≈₂ F.cong₂ G.cong₂
+    ; inverseʳ = inverseʳ  ≈₁ ≈₂ ≈₃ ≈₄ {f⁻¹ = F.g} {g⁻¹ = G.g}
                    F.inverseʳ G.inverseʳ
     } where module F = RightInverse invʳ₁; module G = RightInverse invʳ₂
 
@@ -225,9 +232,9 @@ module _ {R : Setoid a ℓ₁} {S : Setoid b ℓ₂} {T : Setoid c ℓ₃} {U : 
   inverse inv₁ inv₂ = record
     { f       = map F.f   G.f
     ; f⁻¹     = map F.f⁻¹ G.f⁻¹
-    ; cong₁   = congruent (≈ R) (≈ S) (≈ T) (≈ U) F.cong₁ G.cong₁
-    ; cong₂   = congruent (≈ T) (≈ U) (≈ R) (≈ S) F.cong₂ G.cong₂
-    ; inverse = inverseᵇ (≈ R) (≈ S) (≈ T) (≈ U) {f = F.f} {g = G.f}
+    ; cong₁   = cong≈ F.cong₁ G.cong₁
+    ; cong₂   = congruent ≈₃ ≈₄ ≈₁ ≈₂ F.cong₂ G.cong₂
+    ; inverse = inverseᵇ  ≈₁ ≈₂ ≈₃ ≈₄ {f = F.f} {g = G.f}
                   F.inverse G.inverse
     } where module F = Inverse inv₁; module G = Inverse inv₂
 
@@ -242,38 +249,60 @@ private
   pw : Rel (A × B) _
   pw = Pointwise _≡_ _≡_
 
-  join : ∀ {p q : A × B} → pw p q → p ≡ q
-  join refl² = refl
+  ⇊ : ∀ {p q : A × B} → pw p q → p ≡ q
+  ⇊ refl² = refl
 
-  split : ∀ {p q : A × B} → p ≡ q → pw p q
-  split refl = refl²
+  ⇈ : ∀ {p q : A × B} → p ≡ q → pw p q
+  ⇈ refl = refl²
 
-import Function.Construct.Composition as o
+import Function.Construct.Composition as •
 
 infixr 7 _⊗-⟶_ _⊗-↣_ _⊗-↠_ _⊗-⤖_ _⊗-⇔_ _⊗-↩_ _⊗-↪_ _⊗-↔_
 
 _⊗-⟶_ : (A ⟶ C) → (B ⟶ D) → (A × B) ⟶ (C × D)
-f ⊗-⟶ g = o.function (record { cong = split }) (o.function (function f g) (record { cong = join }))
+f ⊗-⟶ g = record { cong = ⇈ }
+         • function f g
+         • record { cong = ⇊ }
+ where infixr 9 _•_ ; _•_ = •.function
 
 _⊗-↣_ : A ↣ C → B ↣ D → (A × B) ↣ (C × D)
-f ⊗-↣ g = o.injection (record { f = id ; cong = split ; injective = join }) (o.injection (injection f g) (record { cong = join ; injective = split }))
+f ⊗-↣ g = record { cong = ⇈ ; injective = ⇊ }
+        • injection f g
+        • record { cong = ⇊ ; injective = ⇈ }
+ where infixr 9 _•_ ; _•_ = •.injection
 
 _⊗-↠_ : A ↠ C → B ↠ D → (A × B) ↠ (C × D)
-f ⊗-↠ g = o.surjection (record { cong = split ; surjective = _, refl² }) (o.surjection (surjection f g) (record { cong = join ; surjective = _, refl }))
+f ⊗-↠ g = record { cong = ⇈ ; surjective = _, refl² }
+        • surjection f g
+        • record { cong = ⇊ ; surjective = _, refl }
+ where infixr 9 _•_ ; _•_ = •.surjection
 
 _⊗-⤖_ : A ⤖ C → B ⤖ D → (A × B) ⤖ (C × D)
-f ⊗-⤖ g = o.bijection (record { f = λ z → z ; cong = split ; bijective = join , _, refl² }) (o.bijection (bijection f g) (record { cong = join ; bijective = split , _, refl }))
+f ⊗-⤖ g = record { cong = ⇈ ; bijective = ⇊ , _, refl² }
+        • bijection f g
+        • record { cong = ⇊ ; bijective = ⇈ , _, refl }
+ where infixr 9 _•_ ; _•_ = •.bijection
 
 _⊗-⇔_ : A ⇔ C → B ⇔ D → (A × B) ⇔ (C × D)
-f ⊗-⇔ g = o.equivalence (record { cong₁ = split ; cong₂ = join }) (o.equivalence (equivalence f g) (record { cong₁ = join ; cong₂ = split }))
+f ⊗-⇔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ }
+        • equivalence f g
+        • record { cong₁ = ⇊ ; cong₂ = ⇈ }
+ where infixr 9 _•_ ; _•_ = •.equivalence
 
 _⊗-↩_ : A ↩ C → B ↩ D → (A × B) ↩ (C × D)
-f ⊗-↩ g = o.leftInverse (record { cong₁ = split ; cong₂ = join ; inverseˡ = λ _ → refl² }) (o.leftInverse (leftInverse f g) (record { cong₁ = join ; cong₂ = split ; inverseˡ = λ _ → refl }))
+f ⊗-↩ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseˡ = λ _ → refl² }
+        • leftInverse f g
+        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseˡ = λ _ → refl }
+ where infixr 9 _•_ ; _•_ = •.leftInverse
 
 _⊗-↪_ : A ↪ C → B ↪ D → (A × B) ↪ (C × D)
-f ⊗-↪ g = o.rightInverse (record { f = id ; g = id ; cong₁ = split ; cong₂ = join ; inverseʳ = λ _ → refl }) (o.rightInverse (rightInverse f g) (record { f = id ; g = id ; cong₁ = join ; cong₂ = split ; inverseʳ = λ _ → refl² }))
+f ⊗-↪ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseʳ = λ _ → refl }
+        • rightInverse f g
+        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseʳ = λ _ → refl² }
+ where infixr 9 _•_ ; _•_ = •.rightInverse
 
 _⊗-↔_ : A ↔ C → B ↔ D → (A × B) ↔ (C × D)
-f ⊗-↔ g = o.inverse (record { cong₁ = split ; cong₂ = join ; inverse = (λ _ → refl²) , (λ _ → refl) }) (o.inverse (inverse f g) (record { cong₁ = join ; cong₂ = split ; inverse = (λ _ → refl) , (λ _ → refl²) }))
-
--- TODO: Infix renamings for o.function, o.injection, etc.
+f ⊗-↔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverse = (λ _ → refl²) , (λ _ → refl) }
+        • inverse f g
+        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverse = (λ _ → refl) , (λ _ → refl²) }
+ where infixr 9 _•_ ; _•_ = •.inverse
