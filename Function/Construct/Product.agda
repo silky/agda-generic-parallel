@@ -123,36 +123,32 @@ module _ {≈₁ : Rel A ℓ₁} {≈₂ : Rel B ℓ₂} {≈₃ : Rel C ℓ₃}
     ; surjective  = surjective ≈₁ ≈₂ ≈₃ ≈₄ F.surjective G.surjective
     } where module F = IsBijection f-bij; module G = IsBijection g-bij
 
-module _ {≈₁ : Rel A ℓ₁} {≈₂ : Rel B ℓ₂} {≈₃ : Rel C ℓ₃} (≈₄ : Rel D ℓ₄)
-         {f : A → C} {f⁻¹ : C → A} {g : B → D} {g⁻¹ : D → B}
-         where
+  module _ {f⁻¹ : C → A} {g⁻¹ : D → B} where
 
-  open PW ≈₁ ≈₂ ≈₃ ≈₄
+    isLeftInverse : IsLeftInverse ≈₁ ≈₃ f f⁻¹ → IsLeftInverse ≈₂ ≈₄ g g⁻¹ →
+                    IsLeftInverse ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
+    isLeftInverse f-invˡ g-invˡ = record
+      { isCongruent = isCongruent F.isCongruent G.isCongruent
+      ; cong₂       = congruent ≈₃ ≈₄ ≈₁ ≈₂ F.cong₂ G.cong₂
+      ; inverseˡ    = inverseˡ ≈₁ ≈₂ ≈₃ ≈₄ {f = f} {g = g} F.inverseˡ G.inverseˡ
+      } where module F = IsLeftInverse f-invˡ; module G = IsLeftInverse g-invˡ
 
-  isLeftInverse : IsLeftInverse ≈₁ ≈₃ f f⁻¹ → IsLeftInverse ≈₂ ≈₄ g g⁻¹ →
-                  IsLeftInverse ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
-  isLeftInverse f-invˡ g-invˡ = record
-    { isCongruent = isCongruent F.isCongruent G.isCongruent
-    ; cong₂       = congruent ≈₃ ≈₄ ≈₁ ≈₂ F.cong₂ G.cong₂
-    ; inverseˡ    = inverseˡ ≈₁ ≈₂ ≈₃ ≈₄ {f = f} {g = g} F.inverseˡ G.inverseˡ
-    } where module F = IsLeftInverse f-invˡ; module G = IsLeftInverse g-invˡ
-
-  isRightInverse : IsRightInverse ≈₁ ≈₃ f f⁻¹ → IsRightInverse ≈₂ ≈₄ g g⁻¹ →
-                   IsRightInverse ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
-  isRightInverse f-invʳ g-invʳ = record
-    { isCongruent = isCongruent F.isCongruent G.isCongruent
-    ; cong₂       = congruent ≈₃ ≈₄ ≈₁ ≈₂ F.cong₂ G.cong₂
-    ; inverseʳ    = inverseʳ ≈₁ ≈₂ ≈₃ ≈₄ {f⁻¹ = f⁻¹} {g⁻¹ = g⁻¹}
-                      F.inverseʳ G.inverseʳ
-    } where module F = IsRightInverse f-invʳ; module G = IsRightInverse g-invʳ
-
-  isInverse : IsInverse ≈₁ ≈₃ f f⁻¹ → IsInverse ≈₂ ≈₄ g g⁻¹ →
-              IsInverse ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
-  isInverse f-inv g-inv = record
-    { isLeftInverse = isLeftInverse F.isLeftInverse G.isLeftInverse
-    ; inverseʳ      = inverseʳ ≈₁ ≈₂ ≈₃ ≈₄ {f⁻¹ = f⁻¹} {g⁻¹ = g⁻¹}
+    isRightInverse : IsRightInverse ≈₁ ≈₃ f f⁻¹ → IsRightInverse ≈₂ ≈₄ g g⁻¹ →
+                     IsRightInverse ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
+    isRightInverse f-invʳ g-invʳ = record
+      { isCongruent = isCongruent F.isCongruent G.isCongruent
+      ; cong₂       = congruent ≈₃ ≈₄ ≈₁ ≈₂ F.cong₂ G.cong₂
+      ; inverseʳ    = inverseʳ ≈₁ ≈₂ ≈₃ ≈₄ {f⁻¹ = f⁻¹} {g⁻¹ = g⁻¹}
                         F.inverseʳ G.inverseʳ
-    } where module F = IsInverse f-inv; module G = IsInverse g-inv
+      } where module F = IsRightInverse f-invʳ; module G = IsRightInverse g-invʳ
+
+    isInverse : IsInverse ≈₁ ≈₃ f f⁻¹ → IsInverse ≈₂ ≈₄ g g⁻¹ →
+                IsInverse ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
+    isInverse f-inv g-inv = record
+      { isLeftInverse = isLeftInverse F.isLeftInverse G.isLeftInverse
+      ; inverseʳ      = inverseʳ ≈₁ ≈₂ ≈₃ ≈₄ {f⁻¹ = f⁻¹} {g⁻¹ = g⁻¹}
+                          F.inverseʳ G.inverseʳ
+      } where module F = IsInverse f-inv; module G = IsInverse g-inv
 
 ------------------------------------------------------------------------
 -- Setoid bundles
