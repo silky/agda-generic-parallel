@@ -1,9 +1,9 @@
-{-# OPTIONS --safe --without-K #-}
+{-# OPTIONS --without-K #-}  --  --safe
 module Scan where
 
 open import Level using (0ℓ)
 
-open import Function using (id; _∘_; _↔_; mk↔′)
+open import Function using (id; _∘_; flip; _$_; _↔_; mk↔′; Inverse)
 open import Data.Product renaming (map to map×; map₁ to map×₁; map₂ to map×₂)
 open import Data.Empty
 open import Data.Unit
@@ -12,9 +12,6 @@ open import Data.Nat
 open import Data.Fin as F hiding (_+_; #_; splitAt)
 open import Data.Fin.Properties renaming (Fin0↔⊥ to 0↔⊥)
 open import Data.Fin.Patterns
-open import Data.Vec hiding ([_]; zipWith; transpose; unzip)
-                     renaming (map to mapv)
-open import Data.Vec.Properties using (++-injective; unfold-take; unfold-drop)
 open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (trans to _;_)
 open ≡-Reasoning
 open import Algebra.Bundles
@@ -64,11 +61,12 @@ Fin↔    `⊤    = 1↔⊤
 Fin↔ (s `+ t) = (Fin↔ s ⊕̇ Fin↔ t) ∘̇ +↔⊎
 Fin↔ (s `× t) = (Fin↔ s ⊗̇ Fin↔ t) ∘̇ *↔×
 
+{-
+open import Data.Vec.Properties using (++-injective; unfold-take; unfold-drop)
 
 -- I suspect these next few can be proved more directly or avoided.
 
 -- Now that I have Fin↔, try to define the Vec↔, and the scrap a bunch of code below.
-
 
 take-++ : ∀ {m n a} {A : Set a} (xs : Vec A m) (ys : Vec A n) → take m (xs ++ ys) ≡ xs
 take-++ [] ys = refl
@@ -92,11 +90,12 @@ concat-injective {suc m} {xss = xs ∷ xss} {ys ∷ yss} eq with ++-injective xs
 concat-injective {suc m} {xss = xs ∷ xss} {ys ∷ yss} _ | refl , eq′ =
   cong (xs ∷_) (concat-injective eq′)
 
-unfold-group′ : ∀ m n xs (xss : Vec (Vec A n) m) →
-  group′ (suc m) n (concat (xs ∷ xss)) ≡ xs ∷ group′ m n (concat xss)
+postulate
+  unfold-group′ : ∀ m n xs (xss : Vec (Vec A n) m) →
+    group′ (suc m) n (concat (xs ∷ xss)) ≡ xs ∷ group′ m n (concat xss)
 
-unfold-group′ m n xs xss with group m n (concat xss)
-unfold-group′ m n xs xss | fst , snd = {!!}
+-- unfold-group′ m n xs xss with group m n (concat xss)
+-- unfold-group′ m n xs xss | fst , snd = {!!}
 
 -- unfold-group′ m n xs xss with group (suc m) n (concat (xs ∷ xss))
 -- unfold-group′ m n xs xss | ys ∷ yss , eq with ++-injective xs ys eq
@@ -164,10 +163,12 @@ group′-concat (suc m) n (xs ∷ xss) =
     xs ∷ xss
   ∎
 
+-}
 
 module scan-vec {ℓ} (M : Monoid 0ℓ ℓ) where
 
   open Monoid M renaming (Carrier to X)
+  open import Data.Vec using (Vec; []; _∷_)
 
   scanˡ : ∀ {n} → Vec X n → Vec X n × X
   scanˡ = go ε
@@ -200,14 +201,58 @@ module InductiveTrie where
   un◎ : T A (s `× t) → T (T A t) s
   un◎ (◎ w) = w
 
-  infixl 1 _!_
+  lookup : ∀ {s A} → T A s → (Index s → A)
+  lookup (I x)   = λ { tt → x }
+  lookup (u ⊗ v) = [ lookup u , lookup v ]
+  lookup (◎ w)   = uncurry (lookup ∘ lookup w)
 
-  at _!_ : T A s → Index s → A
-  at (I x)   = λ { tt → x }
-  at (u ⊗ v) = [ at u , at v ]
-  at (◎ w)   = uncurry (at ∘ at w)
+  tabulate : (Index s → A) → T A s
+  tabulate {  `⊥}   f = 1̇
+  tabulate {  `⊤}   f = I (f tt)
+  tabulate {s `+ t} f = tabulate (f ∘ inj₁) ⊗ tabulate (f ∘ inj₂)
+  tabulate {s `× t} f = ◎ (tabulate (tabulate ∘ curry f))
 
-  _!_ = at
+  tabulate-cong : ∀ {s A} {f g : Index s → A} → f ≗ g → tabulate f ≡ tabulate g
+  tabulate-cong {  `⊥  } f≗g = refl
+  tabulate-cong {  `⊤  } f≗g = cong I (f≗g tt)
+  tabulate-cong {s `+ t} f≗g =
+     cong₂ _⊗_ (tabulate-cong (f≗g ∘ inj₁)) (tabulate-cong (f≗g ∘ inj₂))
+  tabulate-cong {s `× t} f≗g =
+     cong ◎ (tabulate-cong (tabulate-cong ∘ curry f≗g))
+
+  tabulate∘at : ∀ {s A} → tabulate ∘ lookup {s} {A} ≗ id
+  tabulate∘at (1̇) = refl
+  tabulate∘at (I x) = refl
+  tabulate∘at (u ⊗ v) = cong₂ _⊗_ (tabulate∘at u) (tabulate∘at v)
+  tabulate∘at (◎ w) = cong ◎ $
+    begin
+      tabulate (λ x → tabulate (lookup (lookup w x)))
+    ≡⟨⟩
+      tabulate (tabulate ∘ lookup ∘ lookup w)
+    ≡⟨ tabulate-cong (tabulate∘at ∘ lookup w) ⟩
+      tabulate (lookup w)
+    ≡⟨ tabulate∘at w ⟩
+      w
+    ∎
+
+  lookup∘tabulate : ∀ {s A} (f : Index s → A) → lookup (tabulate f) ≗ f
+  lookup∘tabulate {`⊤} f = λ { tt → refl }
+  lookup∘tabulate {s `+ t} f =
+    [ lookup∘tabulate (f ∘ inj₁) , lookup∘tabulate (f ∘ inj₂) ]
+  lookup∘tabulate {s `× t} f = λ p@(i , j) →
+    begin
+      lookup (tabulate f) (i , j)
+    ≡⟨⟩
+      lookup (lookup (tabulate (tabulate ∘ curry f)) i) j
+    ≡⟨ cong (flip lookup j) (lookup∘tabulate (tabulate ∘ curry f) i) ⟩
+      lookup ((tabulate ∘ curry f) i) j
+    ≡⟨⟩
+      lookup (tabulate (curry f i)) j
+    ≡⟨ lookup∘tabulate (curry f i) j ⟩
+      curry f i j
+    ≡⟨⟩
+      f (i , j)
+    ∎
 
   map : ∀ {s A B} → (A → B) → T A s → T B s
   map f 1̇       = 1̇
@@ -221,6 +266,7 @@ module InductiveTrie where
   map-cong {`⊤} f≗g (I x) = cong I (f≗g x)
   map-cong {s `+ t} f≗g (u ⊗ v) = cong₂ _⊗_ (map-cong f≗g u) (map-cong f≗g v)
   map-cong {s `× t} f≗g (◎ w) = cong ◎ (map-cong (map-cong f≗g) w)
+  -- We could probably prove map-cong via tabulate-cong.
 
   map-id : map {s} {A} id ≗ id
   map-id 1̇       = refl
@@ -250,7 +296,26 @@ module InductiveTrie where
   unzip (I (x , y)) = I x , I y
   unzip (u ⊗ v) = transpose (unzip u) (unzip v)
   unzip (◎ w) = map× ◎ ◎ (unzip (map unzip w))
+  
+  -- open import Data.Vec as V using (Vec)
+  -- T↔ : ∀ {s A} → T A s ↔ Vec A (# s)
+  -- T↔ = {!!}
 
+  -- T↔ {s} = mk↔′ to from to∘from from∘to
+  --  where
+  --    to : T A s → Vec A (# s)
+  --    to = tabulate ∘ (_∘ {!!}) ∘ lookup
+
+  --    from : Vec A (# s) → T A s
+  --    from = {!!}
+
+  --    to∘from : to ∘ from ≗ id
+  --    to∘from = {!!}
+
+  --    from∘to : from ∘ to ≗ id
+  --    from∘to = {!!}
+
+{-
   T↔ : ∀ {s A} → T A s ↔ Vec A (# s)
   T↔ {s} = mk↔′ to from (to∘from s) from∘to
    where
@@ -323,6 +388,8 @@ module InductiveTrie where
        ≡⟨ cong ◎ (map-id w) ⟩
          ◎ w
        ∎
+-}
+
 
   module scanˡ {ℓ} (M : Monoid 0ℓ ℓ) where
 
@@ -365,10 +432,6 @@ module InductiveTrie where
       let tweak z = map (z ∙_) in
         ◎ (zipWith tweak zs′ w′) ⊗̂ z′
 
-        -- ◎ (zipWith (λ z → map (z ∙_)) zs′ w′) ⊗̂ z′
-
-        -- ◎ (zipWith (map ∘ _∙_) zs′ w′) ⊗̂ z′
-
 -- Tries as recursive type family. This choice avoids a new data type, but we
 -- can no longer pattern-match over tries, and shapes arguments must be
 -- explicit.
@@ -382,12 +445,12 @@ module RecursiveTrie where
 
   infixl 1 _!_
 
-  at _!_ : ∀ s → T A s → Index s → A
-  at `⊤ x = λ { tt → x }
-  at (s `+ t) (u , v) = [ at s u , at t v ]
-  at (s `× t) w = uncurry (at t ∘ at s w)
+  lookup _!_ : ∀ s → T A s → Index s → A
+  lookup `⊤ x = λ { tt → x }
+  lookup (s `+ t) (u , v) = [ lookup s u , lookup t v ]
+  lookup (s `× t) w = uncurry (lookup t ∘ lookup s w)
 
-  _!_ = at
+  _!_ = lookup
 
   map : ∀ s → (A → B) → T A s → T B s
   map `⊥ f tt = tt
