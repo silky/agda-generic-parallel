@@ -8,7 +8,7 @@
 
 module Function.Construct.Sum where
 
-open import Data.Product using (_,_)
+open import Data.Product using (_,_; proj₁; proj₂) renaming (map to map×)
 open import Data.Sum
 open import Function
 open import Level using (Level)
@@ -29,34 +29,16 @@ private
 ------------------------------------------------------------------------
 -- Properties
 
--- private
-
---   transpose : {B : A → Set b} {D : C → Set d} →
---     Σ A B × Σ C D → Σ (A × C) λ (x , y) → B x × D y
---   transpose ((x , y) , (w , z)) = ((x , w) , (y , z))
-
 module PW  (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃) (≈₄ : Rel D ℓ₄) where
 
-  ≈₁₂ : Rel (A ⊎ B) _
-  ≈₁₂ = Pointwise ≈₁ ≈₂
-
-  ≈₃₄ : Rel (C ⊎ D) _
-  ≈₃₄ = Pointwise ≈₃ ≈₄
-
-  -- foo : ∀ {p q} → Pointwise ≈₁ ≈₂ p q → {!!} -- (p ≈₁ q) ⊎ (p ≈₂ q)
-  -- foo = {!!}
+  ≈₁₂ : Rel (A ⊎ B) _    ;  ≈₃₄ : Rel (C ⊎ D) _
+  ≈₁₂ = Pointwise ≈₁ ≈₂  ;  ≈₃₄ = Pointwise ≈₃ ≈₄
 
   map≈ : { u v : A ⊎ B } {f : A → C} {g : B → D} →
          Congruent ≈₁ ≈₃ f → Congruent ≈₂ ≈₄ g →
        ≈₁₂ u v → ≈₃₄ (map f g u) (map f g v)
   map≈ cong-f cong-g (inj₁ a) = inj₁ (cong-f a)
   map≈ cong-f cong-g (inj₂ b) = inj₂ (cong-g b)
-
-  -- map≈′ : { u v : A ⊎ B } {f : A → C} {g : B → D} →
-  --         Injective ≈₁ ≈₃ f → Injective ≈₂ ≈₄ g →
-  --       ≈₃₄ (map f g u) (map f g v) → ≈₁₂ u v
-  -- map≈′ inj-f inj-g (inj₁ a) = inj₁ (inj-f a)
-  -- map≈′ inj-f inj-g (inj₂ b) = inj₂ (inj-g b)
 
 module _ (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃) (≈₄ : Rel D ℓ₄)
          {f : A → C} {g : B → D}
@@ -68,21 +50,20 @@ module _ (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃)
               Congruent ≈₁₂ ≈₃₄ (map f g)
   congruent f-cong g-cong = map≈ f-cong g-cong
 
-  -- injective : Injective ≈₁ ≈₃ f → Injective ≈₂ ≈₄ g →
-  --             Injective ≈₁₂ ≈₃₄ (map f g)
-  -- injective f-inj g-inj z = {!z!}
+  injective : Injective ≈₁ ≈₃ f → Injective ≈₂ ≈₄ g →
+              Injective ≈₁₂ ≈₃₄ (map f g)
+  injective f-inj g-inj {inj₁ _} {inj₁ _} (inj₁ eq) = inj₁ (f-inj eq)
+  injective f-inj g-inj {inj₂ _} {inj₂ _} (inj₂ eq) = inj₂ (g-inj eq)
 
-  -- surjective : Surjective ≈₁ ≈₃ f → Surjective ≈₂ ≈₄ g →
-  --              Surjective ≈₁₂ ≈₃₄ (map f g)
-  -- surjective f-sur g-sur = transpose ∘ dmap f-sur g-sur
+  surjective : Surjective ≈₁ ≈₃ f → Surjective ≈₂ ≈₄ g →
+               Surjective ≈₁₂ ≈₃₄ (map f g)
+  surjective f-sur g-sur (inj₁ c) = map× inj₁ inj₁ (f-sur c)
+  surjective f-sur g-sur (inj₂ d) = map× inj₂ inj₂ (g-sur d)
 
-  -- -- surjective f-sur g-sur (w , z) with f-sur w | g-sur z
-  -- -- ... | x , fx≈w | y , gy≈z = (x , y) , (fx≈w , gy≈z)
-
-  -- bijective : Bijective ≈₁ ≈₃ f → Bijective ≈₂ ≈₄ g →
-  --             Bijective ≈₁₂ ≈₃₄ (map f g)
-  -- bijective (f-inj , f-sur) (g-inj , g-sur) =
-  --   injective f-inj g-inj , surjective f-sur g-sur
+  bijective : Bijective ≈₁ ≈₃ f → Bijective ≈₂ ≈₄ g →
+              Bijective ≈₁₂ ≈₃₄ (map f g)
+  bijective (f-inj , f-sur) (g-inj , g-sur) =
+    injective f-inj g-inj , surjective f-sur g-sur
 
   module _ {f⁻¹ : C → A} {g⁻¹ : D → B} where
 
@@ -122,26 +103,26 @@ module _ {≈₁ : Rel A ℓ₁} {≈₂ : Rel B ℓ₂} {≈₃ : Rel C ℓ₃}
     ; isEquivalence₂ = ⊎-isEquivalence F.isEquivalence₂ G.isEquivalence₂
     } where module F = IsCongruent f-cong; module G = IsCongruent g-cong
 
-  -- isInjection : IsInjection ≈₁ ≈₃ f → IsInjection ≈₂ ≈₄ g →
-  --               IsInjection ≈₁₂ ≈₃₄ (map f g)
-  -- isInjection f-inj g-inj = record
-  --   { isCongruent = isCongruent F.isCongruent G.isCongruent
-  --   ; injective   = injective ≈₁ ≈₂ ≈₃ ≈₄ F.injective G.injective
-  --   } where module F = IsInjection f-inj; module G = IsInjection g-inj
+  isInjection : IsInjection ≈₁ ≈₃ f → IsInjection ≈₂ ≈₄ g →
+                IsInjection ≈₁₂ ≈₃₄ (map f g)
+  isInjection f-inj g-inj = record
+    { isCongruent = isCongruent F.isCongruent G.isCongruent
+    ; injective   = injective ≈₁ ≈₂ ≈₃ ≈₄ F.injective G.injective
+    } where module F = IsInjection f-inj; module G = IsInjection g-inj
 
-  -- isSurjection : IsSurjection ≈₁ ≈₃ f → IsSurjection ≈₂ ≈₄ g →
-  --                IsSurjection ≈₁₂ ≈₃₄ (map f g)
-  -- isSurjection f-surj g-surj = record
-  --   { isCongruent = isCongruent F.isCongruent G.isCongruent
-  --   ; surjective  = surjective ≈₁ ≈₂ ≈₃ ≈₄ F.surjective G.surjective
-  --   } where module F = IsSurjection f-surj; module G = IsSurjection g-surj
+  isSurjection : IsSurjection ≈₁ ≈₃ f → IsSurjection ≈₂ ≈₄ g →
+                 IsSurjection ≈₁₂ ≈₃₄ (map f g)
+  isSurjection f-surj g-surj = record
+    { isCongruent = isCongruent F.isCongruent G.isCongruent
+    ; surjective  = surjective ≈₁ ≈₂ ≈₃ ≈₄ F.surjective G.surjective
+    } where module F = IsSurjection f-surj; module G = IsSurjection g-surj
 
-  -- isBijection : IsBijection ≈₁ ≈₃ f → IsBijection ≈₂ ≈₄ g →
-  --               IsBijection ≈₁₂ ≈₃₄ (map f g)
-  -- isBijection f-bij g-bij = record
-  --   { isInjection = isInjection F.isInjection G.isInjection
-  --   ; surjective  = surjective ≈₁ ≈₂ ≈₃ ≈₄ F.surjective G.surjective
-  --   } where module F = IsBijection f-bij; module G = IsBijection g-bij
+  isBijection : IsBijection ≈₁ ≈₃ f → IsBijection ≈₂ ≈₄ g →
+                IsBijection ≈₁₂ ≈₃₄ (map f g)
+  isBijection f-bij g-bij = record
+    { isInjection = isInjection F.isInjection G.isInjection
+    ; surjective  = surjective ≈₁ ≈₂ ≈₃ ≈₄ F.surjective G.surjective
+    } where module F = IsBijection f-bij; module G = IsBijection g-bij
 
   module _ {f⁻¹ : C → A} {g⁻¹ : D → B} where
 
@@ -194,26 +175,26 @@ module _ {R : Setoid a ℓ₁} {S : Setoid b ℓ₂} {T : Setoid c ℓ₃} {U : 
     ; cong = cong≈ F.cong G.cong
     } where module F = Func f; module G = Func g
 
---   injection : Injection R T → Injection S U → Injection RS TU
---   injection inj₁ inj₂ = record
---     { f         = map F.f G.f
---     ; cong      = cong≈ F.cong G.cong
---     ; injective = injective ≈₁ ≈₂ ≈₃ ≈₄ F.injective G.injective
---     } where module F = Injection inj₁; module G = Injection inj₂
+  injection : Injection R T → Injection S U → Injection RS TU
+  injection in₁ in₂ = record
+    { f         = map F.f G.f
+    ; cong      = cong≈ F.cong G.cong
+    ; injective = injective ≈₁ ≈₂ ≈₃ ≈₄ F.injective G.injective
+    } where module F = Injection in₁; module G = Injection in₂
 
---   surjection : Surjection R T → Surjection S U → Surjection RS TU
---   surjection surj₁ surj₂ = record
---     { f          = map F.f G.f
---     ; cong       = cong≈ F.cong G.cong
---     ; surjective = surjective ≈₁ ≈₂ ≈₃ ≈₄ F.surjective G.surjective
---     } where module F = Surjection surj₁; module G = Surjection surj₂
+  surjection : Surjection R T → Surjection S U → Surjection RS TU
+  surjection surj₁ surj₂ = record
+    { f          = map F.f G.f
+    ; cong       = cong≈ F.cong G.cong
+    ; surjective = surjective ≈₁ ≈₂ ≈₃ ≈₄ F.surjective G.surjective
+    } where module F = Surjection surj₁; module G = Surjection surj₂
 
---   bijection : Bijection R T → Bijection S U → Bijection RS TU
---   bijection bij₁ bij₂ = record
---     { f         = map F.f G.f
---     ; cong      = cong≈ F.cong G.cong
---     ; bijective = bijective ≈₁ ≈₂ ≈₃ ≈₄ F.bijective G.bijective
---     } where module F = Bijection bij₁; module G = Bijection bij₂
+  bijection : Bijection R T → Bijection S U → Bijection RS TU
+  bijection bij₁ bij₂ = record
+    { f         = map F.f G.f
+    ; cong      = cong≈ F.cong G.cong
+    ; bijective = bijective ≈₁ ≈₂ ≈₃ ≈₄ F.bijective G.bijective
+    } where module F = Bijection bij₁; module G = Bijection bij₂
 
   equivalence : Equivalence R T → Equivalence S U → Equivalence RS TU
   equivalence equiv₁ equiv₂ = record
@@ -277,23 +258,23 @@ f ⊗-⟶ g = record { cong = ⇈ }
          • record { cong = ⇊ }
  where infixr 9 _•_ ; _•_ = •.function
 
--- _⊗-↣_ : A ↣ C → B ↣ D → (A ⊎ B) ↣ (C ⊎ D)
--- f ⊗-↣ g = record { cong = ⇈ ; injective = ⇊ }
---         • injection f g
---         • record { cong = ⇊ ; injective = ⇈ }
---  where infixr 9 _•_ ; _•_ = •.injection
+_⊗-↣_ : A ↣ C → B ↣ D → (A ⊎ B) ↣ (C ⊎ D)
+f ⊗-↣ g = record { cong = ⇈ ; injective = ⇊ }
+        • injection f g
+        • record { cong = ⇊ ; injective = ⇈ }
+ where infixr 9 _•_ ; _•_ = •.injection
 
--- _⊗-↠_ : A ↠ C → B ↠ D → (A ⊎ B) ↠ (C ⊎ D)
--- f ⊗-↠ g = record { cong = ⇈ ; surjective = _, refl⊎ }
---         • surjection f g
---         • record { cong = ⇊ ; surjective = _, refl }
---  where infixr 9 _•_ ; _•_ = •.surjection
+_⊗-↠_ : A ↠ C → B ↠ D → (A ⊎ B) ↠ (C ⊎ D)
+f ⊗-↠ g = record { cong = ⇈ ; surjective = _, refl⊎ }
+        • surjection f g
+        • record { cong = ⇊ ; surjective = _, refl }
+ where infixr 9 _•_ ; _•_ = •.surjection
 
--- _⊗-⤖_ : A ⤖ C → B ⤖ D → (A ⊎ B) ⤖ (C ⊎ D)
--- f ⊗-⤖ g = record { cong = ⇈ ; bijective = ⇊ , _, refl⊎ }
---         • bijection f g
---         • record { cong = ⇊ ; bijective = ⇈ , _, refl }
---  where infixr 9 _•_ ; _•_ = •.bijection
+_⊗-⤖_ : A ⤖ C → B ⤖ D → (A ⊎ B) ⤖ (C ⊎ D)
+f ⊗-⤖ g = record { cong = ⇈ ; bijective = ⇊ , _, refl⊎ }
+        • bijection f g
+        • record { cong = ⇊ ; bijective = ⇈ , _, refl }
+ where infixr 9 _•_ ; _•_ = •.bijection
 
 _⊗-⇔_ : A ⇔ C → B ⇔ D → (A ⊎ B) ⇔ (C ⊎ D)
 f ⊗-⇔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ }
@@ -307,14 +288,14 @@ f ⊗-↩ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseˡ = λ _ → refl
         • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseˡ = λ _ → refl }
  where infixr 9 _•_ ; _•_ = •.leftInverse
 
--- _⊗-↪_ : A ↪ C → B ↪ D → (A ⊎ B) ↪ (C ⊎ D)
--- f ⊗-↪ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseʳ = λ _ → refl }
---         • rightInverse f g
---         • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseʳ = λ _ → refl⊎ }
---  where infixr 9 _•_ ; _•_ = •.rightInverse
+_⊗-↪_ : A ↪ C → B ↪ D → (A ⊎ B) ↪ (C ⊎ D)
+f ⊗-↪ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseʳ = λ _ → refl }
+        • rightInverse f g
+        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseʳ = λ _ → refl⊎ }
+ where infixr 9 _•_ ; _•_ = •.rightInverse
 
--- _⊗-↔_ : A ↔ C → B ↔ D → (A ⊎ B) ↔ (C ⊎ D)
--- f ⊗-↔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverse = (λ _ → refl⊎) , (λ _ → refl) }
---         • inverse f g
---         • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverse = (λ _ → refl) , (λ _ → refl⊎) }
---  where infixr 9 _•_ ; _•_ = •.inverse
+_⊗-↔_ : A ↔ C → B ↔ D → (A ⊎ B) ↔ (C ⊎ D)
+f ⊗-↔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverse = (λ _ → refl⊎) , (λ _ → refl) }
+        • inverse f g
+        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverse = (λ _ → refl) , (λ _ → refl⊎) }
+ where infixr 9 _•_ ; _•_ = •.inverse
