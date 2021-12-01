@@ -14,6 +14,9 @@ open import Level using (Level)
 open import Relation.Binary as B hiding (_⇔_; IsEquivalence)
 
 open import Data.Product.Relation.Binary.Pointwise.NonDependent
+ renaming (≡×≡⇒≡ to ⇊; ≡⇒≡×≡ to ⇈)
+
+
 -- TODO: Dependent
 
 private
@@ -36,9 +39,11 @@ private
 module PW  (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃) (≈₄ : Rel D ℓ₄) where
 
   ≈₁₂ : Rel (A × B) _
+  -- ≈₁₂ (a , b) (a′ , b′) = ≈₁ a a′ × ≈₂ b b′
   ≈₁₂ = Pointwise ≈₁ ≈₂
 
   ≈₃₄ : Rel (C × D) _
+  -- ≈₃₄ (c , d) (c′ , d′) = ≈₁ c c′ × ≈₂ d d′
   ≈₃₄ = Pointwise ≈₃ ≈₄
 
 module _ (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃) (≈₄ : Rel D ℓ₄)
@@ -248,12 +253,6 @@ private
 
   pw : Rel (A × B) _
   pw = Pointwise _≡_ _≡_
-
-  ⇊ : ∀ {p q : A × B} → pw p q → p ≡ q
-  ⇊ refl² = refl
-
-  ⇈ : ∀ {p q : A × B} → p ≡ q → pw p q
-  ⇈ refl = refl²
 
 import Function.Construct.Composition as •
 
