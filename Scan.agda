@@ -1,3 +1,4 @@
+{-# OPTIONS --safe --without-K #-}
 module Scan where
 
 open import Level using (0ℓ)
@@ -9,7 +10,7 @@ open import Data.Unit
 open import Data.Sum renaming (map to map⊎)
 open import Data.Nat
 open import Data.Fin as F hiding (_+_; #_; splitAt)
-open import Data.Fin.Properties
+open import Data.Fin.Properties renaming (Fin0↔⊥ to 0↔⊥)
 open import Data.Fin.Patterns
 open import Data.Vec hiding ([_]; zipWith; transpose; unzip)
                      renaming (map to mapv)
@@ -32,8 +33,8 @@ private variable
   A B C D : Set
 
 # : Shape → ℕ
-# `⊥ = 0
-# `⊤ = 1
+#    `⊥    = 0
+#    `⊤    = 1
 # (s `+ t) = # s + # t
 # (s `× t) = # s * # t
 
@@ -43,51 +44,31 @@ Index `⊤ = ⊤
 Index (s `+ t) = Index s ⊎ Index t
 Index (s `× t) = Index s × Index t
 
-↔Fin : (s : Shape) → Index s ↔ Fin (# s)
-↔Fin s = mk↔′ (to s) (from s) (to∘from s) (from∘to s)
- where
-   to : (s : Shape) → Index s → Fin (# s)
-   to `⊥ = λ ()
-   to `⊤ = λ { tt → zero }
-   to (s `+ t) = join _ _ ∘ map⊎ (to s) (to t)
-   to (s `× t) = uncurry combine ∘ map× (to s) (to t)
-
-   from : (s : Shape) → Fin (# s) → Index s
-   from `⊥ = λ ()
-   from `⊤ = λ { 0F → tt }
-   from (s `+ t) = map⊎ (from s) (from t) ∘ F.splitAt _
-   from (s `× t) = map× (from s) (from t) ∘ remQuot _
-
-   to∘from : (s : Shape) → to s ∘ from s ≗ id
-   to∘from `⊥ = λ ()
-   to∘from `⊤ = λ { 0F → refl }
-   to∘from (s `+ t) = {!!}
-   to∘from (s `× t) = {!!}
-
-   from∘to : (s : Shape) → from s ∘ to s ≗ id
-   from∘to s = {!!}
-
--- TODO: invert the structure of this definition, writing one mk↔′ call per
--- Index constructor. Use the isomorphisms from Data.Fin.Properties. Construct
--- isomorphisms compositionally.
-
-{-
 -- In agda-std-2.0
 1↔⊤ : Fin 1 ↔ ⊤
 1↔⊤ = mk↔′ (λ { 0F → tt }) (λ { tt → 0F }) (λ { tt → refl }) λ { 0F → refl }
 
+open import Function.Construct.Composition using (_∘-↔_)
+open import Function.Construct.Product     using () renaming (_⊗-↔_ to _⊗̇_)
+open import Function.Construct.Sum         using () renaming (_⊕-↔_ to _⊕̇_)
+
+infixr 9 _∘̇_
+_∘̇_ : B ↔ C → A ↔ B → A ↔ C
+g ∘̇ f = f ∘-↔ g
+
+-- TODO: Define a category of inverses.
+
 Fin↔ : (s : Shape) → Fin (# s) ↔ Index s
-Fin↔ `⊥ = Fin0↔⊥
-Fin↔ `⊤ = 1↔⊤
-Fin↔ (s `+ t) = {!!}
-Fin↔ (s `× t) = {!*↔×!}
-
--- TODO: Find or define compositional building blocks. See [(1623) Composing Inverses etc - Agda - Zulip](https://agda.zulipchat.com/#narrow/stream/238741-general/topic/Composing.20Inverses.20etc/near/262943635).
-
--}
+Fin↔    `⊥    = 0↔⊥
+Fin↔    `⊤    = 1↔⊤
+Fin↔ (s `+ t) = (Fin↔ s ⊕̇ Fin↔ t) ∘̇ +↔⊎
+Fin↔ (s `× t) = (Fin↔ s ⊗̇ Fin↔ t) ∘̇ *↔×
 
 
 -- I suspect these next few can be proved more directly or avoided.
+
+-- Now that I have Fin↔, try to define the Vec↔, and the scrap a bunch of code below.
+
 
 take-++ : ∀ {m n a} {A : Set a} (xs : Vec A m) (ys : Vec A n) → take m (xs ++ ys) ≡ xs
 take-++ [] ys = refl

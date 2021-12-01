@@ -37,11 +37,9 @@ private
 module PW  (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃) (≈₄ : Rel D ℓ₄) where
 
   ≈₁₂ : Rel (A × B) _
-  -- ≈₁₂ (a , b) (a′ , b′) = ≈₁ a a′ × ≈₂ b b′
   ≈₁₂ = Pointwise ≈₁ ≈₂
 
   ≈₃₄ : Rel (C × D) _
-  -- ≈₃₄ (c , d) (c′ , d′) = ≈₁ c c′ × ≈₂ d d′
   ≈₃₄ = Pointwise ≈₃ ≈₄
 
 module _ (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃) (≈₄ : Rel D ℓ₄)
@@ -61,9 +59,6 @@ module _ (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃)
   surjective : Surjective ≈₁ ≈₃ f → Surjective ≈₂ ≈₄ g →
                Surjective ≈₁₂ ≈₃₄ (map f g)
   surjective f-sur g-sur = transpose ∘ dmap f-sur g-sur
-
-  -- surjective f-sur g-sur (w , z) with f-sur w | g-sur z
-  -- ... | x , fx≈w | y , gy≈z = (x , y) , (fx≈w , gy≈z)
 
   bijective : Bijective ≈₁ ≈₃ f → Bijective ≈₂ ≈₄ g →
               Bijective ≈₁₂ ≈₃₄ (map f g)
@@ -246,54 +241,54 @@ private
   refl× : {z : A × B} → pw z z
   refl× = refl , refl
 
-import Function.Construct.Composition as •
+import Function.Construct.Composition as O
 
 infixr 7 _⊗-⟶_ _⊗-↣_ _⊗-↠_ _⊗-⤖_ _⊗-⇔_ _⊗-↩_ _⊗-↪_ _⊗-↔_
 
 _⊗-⟶_ : (A ⟶ C) → (B ⟶ D) → (A × B) ⟶ (C × D)
 f ⊗-⟶ g = record { cong = ⇈ }
-         • function f g
-         • record { cong = ⇊ }
- where infixr 9 _•_ ; _•_ = •.function
+         ; function f g
+         ; record { cong = ⇊ }
+ where infixr 9 _;_ ; _;_ = O.function
 
 _⊗-↣_ : A ↣ C → B ↣ D → (A × B) ↣ (C × D)
 f ⊗-↣ g = record { cong = ⇈ ; injective = ⇊ }
-        • injection f g
-        • record { cong = ⇊ ; injective = ⇈ }
- where infixr 9 _•_ ; _•_ = •.injection
+        ; injection f g
+        ; record { cong = ⇊ ; injective = ⇈ }
+ where infixr 9 _;_ ; _;_ = O.injection
 
 _⊗-↠_ : A ↠ C → B ↠ D → (A × B) ↠ (C × D)
 f ⊗-↠ g = record { cong = ⇈ ; surjective = _, refl× }
-        • surjection f g
-        • record { cong = ⇊ ; surjective = _, refl }
- where infixr 9 _•_ ; _•_ = •.surjection
+        ; surjection f g
+        ; record { cong = ⇊ ; surjective = _, refl }
+ where infixr 9 _;_ ; _;_ = O.surjection
 
 _⊗-⤖_ : A ⤖ C → B ⤖ D → (A × B) ⤖ (C × D)
 f ⊗-⤖ g = record { cong = ⇈ ; bijective = ⇊ , _, refl× }
-        • bijection f g
-        • record { cong = ⇊ ; bijective = ⇈ , _, refl }
- where infixr 9 _•_ ; _•_ = •.bijection
+        ; bijection f g
+        ; record { cong = ⇊ ; bijective = ⇈ , _, refl }
+ where infixr 9 _;_ ; _;_ = O.bijection
 
 _⊗-⇔_ : A ⇔ C → B ⇔ D → (A × B) ⇔ (C × D)
 f ⊗-⇔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ }
-        • equivalence f g
-        • record { cong₁ = ⇊ ; cong₂ = ⇈ }
- where infixr 9 _•_ ; _•_ = •.equivalence
+        ; equivalence f g
+        ; record { cong₁ = ⇊ ; cong₂ = ⇈ }
+ where infixr 9 _;_ ; _;_ = O.equivalence
 
 _⊗-↩_ : A ↩ C → B ↩ D → (A × B) ↩ (C × D)
 f ⊗-↩ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseˡ = λ _ → refl× }
-        • leftInverse f g
-        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseˡ = λ _ → refl }
- where infixr 9 _•_ ; _•_ = •.leftInverse
+        ; leftInverse f g
+        ; record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseˡ = λ _ → refl }
+ where infixr 9 _;_ ; _;_ = O.leftInverse
 
 _⊗-↪_ : A ↪ C → B ↪ D → (A × B) ↪ (C × D)
 f ⊗-↪ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseʳ = λ _ → refl }
-        • rightInverse f g
-        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseʳ = λ _ → refl× }
- where infixr 9 _•_ ; _•_ = •.rightInverse
+        ; rightInverse f g
+        ; record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseʳ = λ _ → refl× }
+ where infixr 9 _;_ ; _;_ = O.rightInverse
 
 _⊗-↔_ : A ↔ C → B ↔ D → (A × B) ↔ (C × D)
 f ⊗-↔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverse = (λ _ → refl×) , (λ _ → refl) }
-        • inverse f g
-        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverse = (λ _ → refl) , (λ _ → refl×) }
- where infixr 9 _•_ ; _•_ = •.inverse
+        ; inverse f g
+        ; record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverse = (λ _ → refl) , (λ _ → refl×) }
+ where infixr 9 _;_ ; _;_ = O.inverse
