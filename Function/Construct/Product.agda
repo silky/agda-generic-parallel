@@ -15,9 +15,7 @@ open import Relation.Binary as B hiding (_⇔_; IsEquivalence)
 
 open import Data.Product.Relation.Binary.Pointwise.NonDependent
  renaming (≡×≡⇒≡ to ⇊; ≡⇒≡×≡ to ⇈)
-
-
--- TODO: Dependent
+-- TODO: Dependent?
 
 private
   variable
@@ -249,10 +247,12 @@ module _ {R : Setoid a ℓ₁} {S : Setoid b ℓ₂} {T : Setoid c ℓ₃} {U : 
 open import Relation.Binary.PropositionalEquality
 
 private
-  pattern refl² = refl , refl
 
   pw : Rel (A × B) _
   pw = Pointwise _≡_ _≡_
+
+  refl× : {z : A × B} → pw z z
+  refl× = refl , refl
 
 import Function.Construct.Composition as •
 
@@ -271,13 +271,13 @@ f ⊗-↣ g = record { cong = ⇈ ; injective = ⇊ }
  where infixr 9 _•_ ; _•_ = •.injection
 
 _⊗-↠_ : A ↠ C → B ↠ D → (A × B) ↠ (C × D)
-f ⊗-↠ g = record { cong = ⇈ ; surjective = _, refl² }
+f ⊗-↠ g = record { cong = ⇈ ; surjective = _, refl× }
         • surjection f g
         • record { cong = ⇊ ; surjective = _, refl }
  where infixr 9 _•_ ; _•_ = •.surjection
 
 _⊗-⤖_ : A ⤖ C → B ⤖ D → (A × B) ⤖ (C × D)
-f ⊗-⤖ g = record { cong = ⇈ ; bijective = ⇊ , _, refl² }
+f ⊗-⤖ g = record { cong = ⇈ ; bijective = ⇊ , _, refl× }
         • bijection f g
         • record { cong = ⇊ ; bijective = ⇈ , _, refl }
  where infixr 9 _•_ ; _•_ = •.bijection
@@ -289,7 +289,7 @@ f ⊗-⇔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ }
  where infixr 9 _•_ ; _•_ = •.equivalence
 
 _⊗-↩_ : A ↩ C → B ↩ D → (A × B) ↩ (C × D)
-f ⊗-↩ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseˡ = λ _ → refl² }
+f ⊗-↩ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseˡ = λ _ → refl× }
         • leftInverse f g
         • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseˡ = λ _ → refl }
  where infixr 9 _•_ ; _•_ = •.leftInverse
@@ -297,11 +297,11 @@ f ⊗-↩ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseˡ = λ _ → refl
 _⊗-↪_ : A ↪ C → B ↪ D → (A × B) ↪ (C × D)
 f ⊗-↪ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseʳ = λ _ → refl }
         • rightInverse f g
-        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseʳ = λ _ → refl² }
+        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseʳ = λ _ → refl× }
  where infixr 9 _•_ ; _•_ = •.rightInverse
 
 _⊗-↔_ : A ↔ C → B ↔ D → (A × B) ↔ (C × D)
-f ⊗-↔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverse = (λ _ → refl²) , (λ _ → refl) }
+f ⊗-↔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverse = (λ _ → refl×) , (λ _ → refl) }
         • inverse f g
-        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverse = (λ _ → refl) , (λ _ → refl²) }
+        • record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverse = (λ _ → refl) , (λ _ → refl×) }
  where infixr 9 _•_ ; _•_ = •.inverse
