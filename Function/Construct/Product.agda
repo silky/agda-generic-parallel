@@ -70,24 +70,20 @@ module _ (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃)
   bijective (f-inj , f-sur) (g-inj , g-sur) =
     injective f-inj g-inj , surjective f-sur g-sur
 
-module _ (≈₁ : Rel A ℓ₁) (≈₂ : Rel B ℓ₂) (≈₃ : Rel C ℓ₃) (≈₄ : Rel D ℓ₄)
-         {f : A → C} {f⁻¹ : C → A} {g : B → D} {g⁻¹ : D → B}
-         where
+  module _ {f⁻¹ : C → A} {g⁻¹ : D → B} where
 
-  open PW ≈₁ ≈₂ ≈₃ ≈₄
+    inverseˡ : Inverseˡ ≈₁ ≈₃ f f⁻¹ → Inverseˡ ≈₂ ≈₄ g g⁻¹ →
+               Inverseˡ ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
+    inverseˡ f-inv g-inv = dmap f-inv g-inv
 
-  inverseˡ : Inverseˡ ≈₁ ≈₃ f f⁻¹ → Inverseˡ ≈₂ ≈₄ g g⁻¹ →
-             Inverseˡ ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
-  inverseˡ f-inv g-inv = dmap f-inv g-inv
+    inverseʳ : Inverseʳ ≈₁ ≈₃ f f⁻¹ → Inverseʳ ≈₂ ≈₄ g g⁻¹ →
+               Inverseʳ ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
+    inverseʳ f-inv g-inv = dmap f-inv g-inv
 
-  inverseʳ : Inverseʳ ≈₁ ≈₃ f f⁻¹ → Inverseʳ ≈₂ ≈₄ g g⁻¹ →
-             Inverseʳ ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
-  inverseʳ f-inv g-inv = dmap f-inv g-inv
-
-  inverseᵇ : Inverseᵇ ≈₁ ≈₃ f f⁻¹ → Inverseᵇ ≈₂ ≈₄ g g⁻¹ →
-             Inverseᵇ ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
-  inverseᵇ (f-invˡ , f-invʳ) (g-invˡ , g-invʳ) =
-    inverseˡ f-invˡ g-invˡ , inverseʳ f-invʳ g-invʳ
+    inverseᵇ : Inverseᵇ ≈₁ ≈₃ f f⁻¹ → Inverseᵇ ≈₂ ≈₄ g g⁻¹ →
+               Inverseᵇ ≈₁₂ ≈₃₄ (map f g) (map f⁻¹ g⁻¹)
+    inverseᵇ (f-invˡ , f-invʳ) (g-invˡ , g-invʳ) =
+      inverseˡ f-invˡ g-invˡ , inverseʳ f-invʳ g-invʳ
 
 ------------------------------------------------------------------------
 -- Structures
