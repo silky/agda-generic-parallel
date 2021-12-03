@@ -1,8 +1,7 @@
 {-# OPTIONS --without-K #-}  --  --safe
 module Scan where
 
-open import Level using (0ℓ)
-
+open import Level
 open import Function using (id; _∘_; flip; _$_; _↔_; mk↔′; Inverse)
 open import Data.Product as × using (_,_; _×_; proj₁; proj₂; uncurry; curry)
 open import Data.Empty
@@ -13,18 +12,15 @@ open import Data.Fin as F hiding (_+_; #_; splitAt)
 open import Data.Fin.Properties renaming (Fin0↔⊥ to 0↔⊥)
 open import Data.Fin.Patterns
 open import Data.Vec as V using (Vec)
+import Data.Vec.Properties as V
 open import Relation.Binary.PropositionalEquality as ≡
   hiding ([_]) renaming (trans to _;_)
 open ≡-Reasoning
-open import Algebra.Bundles
 open import Relation.Binary.Bundles using (Setoid)
-
-import Function.Construct.Composition as O
+open import Algebra.Bundles
 
 -- Most of the content below will be moved into other top-level modules and
 -- shared with FFT and other algorithm families.
-
-open Level
 
 private variable
   a b c ℓ ℓ₁ ℓ₂ : Level
@@ -34,7 +30,13 @@ private variable
 
 module _ where
 
-  open import Data.Vec.Properties as V
+  infixr 9 _∘̇_
+  _∘̇_ : Inverse R S → Inverse Q R → Inverse Q S
+  g ∘̇ f = inverse f g where open import Function.Construct.Composition
+
+  -- In agda-std-2.0
+  1↔⊤ : Fin 1 ↔ ⊤
+  1↔⊤ = mk↔′ (λ { 0F → tt }) (λ { tt → 0F }) (λ { tt → refl }) λ { 0F → refl }
 
   -- Does this operation live anywhere?
   _⁻¹ : Inverse R S → Inverse S R
@@ -55,6 +57,7 @@ module _ where
     ; inverse = (λ g → cong g ∘ proj₁ inverse)
               , (λ g → cong g ∘ proj₂ inverse)
     } where open Inverse A↔B
+
 
   -- TODO: propose for agda-stdlib
   vec-fun-inverse : Inverse (≡.setoid (Vec A n)) (Fin n →-setoid A)
@@ -91,17 +94,8 @@ Index    `⊤    =         ⊤
 Index (s `⊎ t) = Index s ⊎ Index t
 Index (s `× t) = Index s × Index t
 
-open import Function.Construct.Composition using (_∘-↔_)
-open import Function.Construct.Product     using () renaming (_⊗-↔_ to _⊗̇_)
-open import Function.Construct.Sum         using () renaming (_⊕-↔_ to _⊕̇_)
-
-infixr 9 _∘̇_
-_∘̇_ : Inverse R S → Inverse Q R → Inverse Q S
-g ∘̇ f = O.inverse f g
-
--- In agda-std-2.0
-1↔⊤ : Fin 1 ↔ ⊤
-1↔⊤ = mk↔′ (λ { 0F → tt }) (λ { tt → 0F }) (λ { tt → refl }) λ { 0F → refl }
+open import Function.Construct.Product using () renaming (_⊗-↔_ to _⊗̇_)
+open import Function.Construct.Sum     using () renaming (_⊕-↔_ to _⊕̇_)
 
 -- TODO: Define a category of inverses.
 
@@ -119,7 +113,7 @@ module scan-vec (M : Monoid c ℓ) where
   scanˡ : Vec X n → Vec X n × X
   scanˡ = go ε
    where
-     go : ∀ (x : X) {n} → Vec X n → Vec X n × X
+     go : X → Vec X n → Vec X n × X
      go acc [] = [] , acc
      go acc (x ∷ xs) = ×.map₁ (acc ∷_) (go acc xs)
 
