@@ -39,6 +39,9 @@ scanˡ (◎ w) =
   in
     ◎ (zipWith tweak zs′ w′) , z′
 
+-- Experiment: return type as a single trie. I think we'll need it for the
+-- categorical version in which objects are shapes.
+
 unzip′ : T (T A (t `⊎ `⊤)) s → T (T A t) s × T A s
 unzip′ = ×.map₂ (map unI) ∘ unzip ∘ map un⊗
 

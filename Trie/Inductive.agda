@@ -23,8 +23,8 @@ open import Shape
 -- shared with FFT and other algorithm families.
 
 private variable
-  a b c : Level
-  A B C D : Set a
+  ℓ : Level
+  A B C D : Set ℓ
   s t : Shape
 
 infix 7 _⊗_
@@ -47,13 +47,13 @@ un◎ : T A (s `× t) → T (T A t) s
 un◎ (◎ w) = w
 
 lookup : ∀ {s A} → T A s → (Index s → A)
-lookup (I x)   = λ { tt → x }
+lookup ( I x ) = λ { tt → x }
 lookup (u ⊗ v) = [ lookup u , lookup v ]
-lookup (◎ w)   = uncurry (lookup ∘ lookup w)
+lookup ( ◎ w ) = uncurry (lookup ∘ lookup w)
 
 tabulate : ∀ {s A} → (Index s → A) → T A s
-tabulate {  `⊥}   f = 1̇
-tabulate {  `⊤}   f = I (f tt)
+tabulate {  `⊥  } f = 1̇
+tabulate {  `⊤  } f = I (f tt)
 tabulate {s `⊎ t} f = tabulate (f ∘ inj₁) ⊗ tabulate (f ∘ inj₂)
 tabulate {s `× t} f = ◎ (tabulate (tabulate ∘ curry f))
 
@@ -66,7 +66,7 @@ tabulate-cong {s `× t} f≗g =
    cong ◎ (tabulate-cong (tabulate-cong ∘ curry f≗g))
 
 tabulate∘lookup : ∀ {s A} → tabulate ∘ lookup {s} {A} ≗ id
-tabulate∘lookup (1̇) = refl
+tabulate∘lookup 1̇ = refl
 tabulate∘lookup (I x) = refl
 tabulate∘lookup (u ⊗ v) = cong₂ _⊗_ (tabulate∘lookup u) (tabulate∘lookup v)
 tabulate∘lookup (◎ w) = cong ◎ $
@@ -107,6 +107,9 @@ T↔fun = record
   ; cong₂   = tabulate-cong
   ; inverse = lookup∘tabulate , tabulate∘lookup
   }
+
+T↔Vec : ∀ {s A} → T A s ↔ Vec A (# s)
+T↔Vec {s} = fun-vec-inverse ∘̇ dom (fin↔index s ⁻¹) ∘̇ T↔fun
 
 map : ∀ {s A B} → (A → B) → T A s → T B s
 map f 1̇       = 1̇
@@ -150,6 +153,3 @@ unzip 1̇ = 1̇ , 1̇
 unzip (I (x , y)) = I x , I y
 unzip (u ⊗ v) = transpose (unzip u) (unzip v)
 unzip (◎ w) = ×.map ◎ ◎ (unzip (map unzip w))
-
-T↔Vec : ∀ {s A} → T A s ↔ Vec A (# s)
-T↔Vec {s} = fun-vec-inverse ∘̇ dom (fin↔index s ⁻¹) ∘̇ T↔fun
