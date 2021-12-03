@@ -18,6 +18,7 @@ open import Relation.Binary.Bundles using (Setoid)
 open import Algebra.Bundles using (Monoid)
 
 open import Misc
+open import Shape
 
 -- Most of the content below will be moved into other top-level modules and
 -- shared with FFT and other algorithm families.
@@ -27,37 +28,7 @@ private variable
   A B C D : Set a
   Q R S : Setoid a ℓ₁
   n : ℕ
-
-infix 6 _`⊎_
-infix 7 _`×_
-data Shape : Set where
-  `⊥ `⊤ : Shape
-  _`⊎_ _`×_  : Shape → Shape → Shape
-
-private variable s t : Shape
-
-# : Shape → ℕ
-#    `⊥    =     0
-#    `⊤    =     1
-# (s `⊎ t) = # s + # t
-# (s `× t) = # s * # t
-
-Index : Shape → Set
-Index    `⊥    =         ⊥
-Index    `⊤    =         ⊤
-Index (s `⊎ t) = Index s ⊎ Index t
-Index (s `× t) = Index s × Index t
-
-open import Function.Construct.Product using () renaming (_⊗-↔_ to _⊗̇_)
-open import Function.Construct.Sum     using () renaming (_⊕-↔_ to _⊕̇_)
-
--- TODO: Define a category of inverses.
-
-fin↔index : (s : Shape) → Fin (# s) ↔ Index s
-fin↔index    `⊥    = 0↔⊥
-fin↔index    `⊤    = 1↔⊤
-fin↔index (s `⊎ t) = (fin↔index s ⊕̇ fin↔index t) ∘̇ +↔⊎
-fin↔index (s `× t) = (fin↔index s ⊗̇ fin↔index t) ∘̇ *↔×
+  s t : Shape
 
 module scan-vec (M : Monoid c ℓ) where
 
