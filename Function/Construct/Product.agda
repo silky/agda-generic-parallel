@@ -249,46 +249,46 @@ _⊗-⟶_ : (A ⟶ C) → (B ⟶ D) → (A × B) ⟶ (C × D)
 f ⊗-⟶ g = record { cong = ⇈ }
          ; function f g
          ; record { cong = ⇊ }
- where infixr 9 _;_ ; _;_ = O.function
+ where infixl 9 _;_ ; _;_ = O.function
 
 _⊗-↣_ : A ↣ C → B ↣ D → (A × B) ↣ (C × D)
 f ⊗-↣ g = record { cong = ⇈ ; injective = ⇊ }
         ; injection f g
         ; record { cong = ⇊ ; injective = ⇈ }
- where infixr 9 _;_ ; _;_ = O.injection
+ where infixl 9 _;_ ; _;_ = O.injection
 
 _⊗-↠_ : A ↠ C → B ↠ D → (A × B) ↠ (C × D)
 f ⊗-↠ g = record { cong = ⇈ ; surjective = _, refl× }
         ; surjection f g
         ; record { cong = ⇊ ; surjective = _, refl }
- where infixr 9 _;_ ; _;_ = O.surjection
+ where infixl 9 _;_ ; _;_ = O.surjection
 
 _⊗-⤖_ : A ⤖ C → B ⤖ D → (A × B) ⤖ (C × D)
 f ⊗-⤖ g = record { cong = ⇈ ; bijective = ⇊ , _, refl× }
         ; bijection f g
         ; record { cong = ⇊ ; bijective = ⇈ , _, refl }
- where infixr 9 _;_ ; _;_ = O.bijection
+ where infixl 9 _;_ ; _;_ = O.bijection
 
 _⊗-⇔_ : A ⇔ C → B ⇔ D → (A × B) ⇔ (C × D)
 f ⊗-⇔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ }
         ; equivalence f g
         ; record { cong₁ = ⇊ ; cong₂ = ⇈ }
- where infixr 9 _;_ ; _;_ = O.equivalence
+ where infixl 9 _;_ ; _;_ = O.equivalence
 
 _⊗-↩_ : A ↩ C → B ↩ D → (A × B) ↩ (C × D)
 f ⊗-↩ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseˡ = λ _ → refl× }
         ; leftInverse f g
         ; record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseˡ = λ _ → refl }
- where infixr 9 _;_ ; _;_ = O.leftInverse
+ where infixl 9 _;_ ; _;_ = O.leftInverse
 
 _⊗-↪_ : A ↪ C → B ↪ D → (A × B) ↪ (C × D)
 f ⊗-↪ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverseʳ = λ _ → refl }
         ; rightInverse f g
         ; record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverseʳ = λ _ → refl× }
- where infixr 9 _;_ ; _;_ = O.rightInverse
+ where infixl 9 _;_ ; _;_ = O.rightInverse
 
 _⊗-↔_ : A ↔ C → B ↔ D → (A × B) ↔ (C × D)
 f ⊗-↔ g = record { cong₁ = ⇈ ; cong₂ = ⇊ ; inverse = (λ _ → refl×) , (λ _ → refl) }
         ; inverse f g
         ; record { cong₁ = ⇊ ; cong₂ = ⇈ ; inverse = (λ _ → refl) , (λ _ → refl×) }
- where infixr 9 _;_ ; _;_ = O.inverse
+ where infixl 9 _;_ ; _;_ = O.inverse
