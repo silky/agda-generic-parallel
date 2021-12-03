@@ -30,19 +30,6 @@ private variable
   n : ℕ
   s t : Shape
 
-module scan-vec (M : Monoid c ℓ) where
-
-  open Monoid M renaming (Carrier to X)
-  open import Data.Vec using (Vec; []; _∷_)
-
-  scanˡ : Vec X n → Vec X n × X
-  scanˡ = go ε
-   where
-     go : X → Vec X n → Vec X n × X
-     go acc [] = [] , acc
-     go acc (x ∷ xs) = ×.map₁ (acc ∷_) (go acc xs)
-
-
 -- Tries (Naperian functors) as inductive type family. We can then pattern-match
 -- over tries and leave shape arguments implicit.
 module InductiveTrie where

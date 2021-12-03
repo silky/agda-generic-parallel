@@ -63,3 +63,17 @@ vec-fun-inverse = record
 -- Alternatively
 fun-vec-inverse : Inverse (Fin n →-setoid A) (≡.setoid (Vec A n))
 fun-vec-inverse = vec-fun-inverse ⁻¹
+
+open import Algebra.Bundles using (Monoid)
+
+module scan-vec {c ℓ} (M : Monoid c ℓ) where
+
+  open Monoid M renaming (Carrier to X)
+  open import Data.Vec using (Vec; []; _∷_)
+
+  scanˡ : Vec X n → Vec X n × X
+  scanˡ = go ε
+   where
+     go : X → Vec X n → Vec X n × X
+     go acc [] = [] , acc
+     go acc (x ∷ xs) = ×.map₁ (acc ∷_) (go acc xs)
