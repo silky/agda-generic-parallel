@@ -45,10 +45,6 @@ Index `⊤ = ⊤
 Index (s `+ t) = Index s ⊎ Index t
 Index (s `× t) = Index s × Index t
 
--- In agda-std-2.0
-1↔⊤ : Fin 1 ↔ ⊤
-1↔⊤ = mk↔′ (λ { 0F → tt }) (λ { tt → 0F }) (λ { tt → refl }) λ { 0F → refl }
-
 open import Function.Construct.Composition using (_∘-↔_)
 open import Function.Construct.Product     using () renaming (_⊗-↔_ to _⊗̇_)
 open import Function.Construct.Sum         using () renaming (_⊕-↔_ to _⊕̇_)
@@ -63,6 +59,9 @@ _∘̇_ : ∀ {a b c ℓ₁ ℓ₂ ℓ₃}
        Inverse S T → Inverse R S → Inverse R T
 g ∘̇ f = O.inverse f g
 
+-- In agda-std-2.0
+1↔⊤ : Fin 1 ↔ ⊤
+1↔⊤ = mk↔′ (λ { 0F → tt }) (λ { tt → 0F }) (λ { tt → refl }) λ { 0F → refl }
 
 -- TODO: Define a category of inverses.
 
@@ -71,110 +70,6 @@ fin↔index    `⊥    = 0↔⊥
 fin↔index    `⊤    = 1↔⊤
 fin↔index (s `+ t) = (fin↔index s ⊕̇ fin↔index t) ∘̇ +↔⊎
 fin↔index (s `× t) = (fin↔index s ⊗̇ fin↔index t) ∘̇ *↔×
-
-{-
-open import Data.Vec.Properties using (++-injective; unfold-take; unfold-drop)
-
--- I suspect these next few can be proved more directly or avoided.
-
--- Now that I have Fin↔, try to define the Vec↔, and the scrap a bunch of code below.
-
-take-++ : ∀ {m n a} {A : Set a} (xs : Vec A m) (ys : Vec A n) → take m (xs ++ ys) ≡ xs
-take-++ [] ys = refl
-take-++ {suc m} (x ∷ xs) ys =
- unfold-take m x (xs ++ ys) ; cong (x ∷_) (take-++ xs ys)
-
-drop-++ : ∀ {m n a} {A : Set a} (xs : Vec A m) (ys : Vec A n) → drop m (xs ++ ys) ≡ ys
-drop-++ [] ys = refl
-drop-++ {suc m} (x ∷ xs) ys = unfold-drop m x (xs ++ ys) ; drop-++ xs ys
-
-group′ : ∀ m n (xs : Vec A (m * n)) → Vec (Vec A n) m
-group′ m n xs with group m n xs
-group′ m n .(concat xss) | xss , refl = xss
-
--- group′-[] : ∀ n → group′ {A = A} zero n [] ≡ []
--- group′-[] n = refl
-
-concat-injective : ∀ {m n} {a} {A : Set a} {xss yss : Vec (Vec A n) m} → concat xss ≡ concat yss → xss ≡ yss
-concat-injective {zero} {xss = []} {[]} refl = refl
-concat-injective {suc m} {xss = xs ∷ xss} {ys ∷ yss} eq with ++-injective xs ys eq
-concat-injective {suc m} {xss = xs ∷ xss} {ys ∷ yss} _ | refl , eq′ =
-  cong (xs ∷_) (concat-injective eq′)
-
-postulate
-  unfold-group′ : ∀ m n xs (xss : Vec (Vec A n) m) →
-    group′ (suc m) n (concat (xs ∷ xss)) ≡ xs ∷ group′ m n (concat xss)
-
--- unfold-group′ m n xs xss with group m n (concat xss)
--- unfold-group′ m n xs xss | fst , snd = {!!}
-
--- unfold-group′ m n xs xss with group (suc m) n (concat (xs ∷ xss))
--- unfold-group′ m n xs xss | ys ∷ yss , eq with ++-injective xs ys eq
--- unfold-group′ m n xs xss | .xs ∷ yss , _ | refl , eq =
---   -- Goal: (group′ (suc m) n (xs ++ concat xss) | xs ∷ yss , eq₁) ≡
---   --     xs ∷ (group′ m n (concat xss) | group m n (concat xss))
---   begin
---     {!group′ (suc m) n (xs ++ concat xss)!}
---   ≡⟨⟩
---     {!!}
---   ≡⟨ {!!} ⟩
---     {!!}
---   ≡⟨⟩
---     {!!}
---   ∎
-
--- unfold-group′ m n xs xss with group (suc m) n (concat (xs ∷ xss))
--- ... | ys ∷ yss , eq with ++-injective xs ys eq
--- ...   | fst , snd = {!!}
-
--- unfold-group′ m n xs xss with splitAt n (concat (xs ∷ xss))
--- unfold-group′ m n xs xss | ys , zs , eq with ++-injective xs ys eq
--- unfold-group′ m n xs xss | .xs , .(concat xss) , eq | refl , refl = {!!}
-
--- unfold-group′ m n xs xss with splitAt n (concat (xs ∷ xss))
--- ... | ys , zs , eq with ++-injective xs ys eq
--- ... |    refl , refl = {!!}
-
--- group : ∀ m n (xs : Vec A (m * n)) →
---         ∃ λ (xss : Vec (Vec A n) m) → xs ≡ concat xss
--- group zero    n []                  = ([] , refl)
--- group (suc m) n xs                  with splitAt n xs
--- group (suc m) n .(ys ++ zs)         | (ys , zs , refl) with group m n zs
--- group (suc m) n .(ys ++ concat zss) | (ys , ._ , refl) | (zss , refl) =
---   ((ys ∷ zss) , refl)
-
--- unfold-group′ : ∀ m n xs (xss : Vec (Vec A n) m) →
---   group′ (suc m) n (concat (xs ∷ xss)) ≡ xs ∷ group′ m n (concat xss)
--- unfold-group′ zero n xs [] =
---   -- group′ 1 n (xs ++ []) ≡ xs ∷ group′ zero n []
---   begin
---     group′ 1 n (xs ++ [])
---   ≡⟨ {!!} ⟩
---     xs ∷ group′ 0 n []
---   ∎
--- unfold-group′ (suc m) n xs xss =
---   begin
---     group′ (suc (suc m)) n (concat (xs ∷ xss))
---   ≡⟨⟩
---     {!!}
---   ≡⟨ {!!} ⟩
---     {!!}
---   ≡⟨⟩
---     xs ∷ group′ (suc m) n (concat xss)
---   ∎
-
-group′-concat : ∀ m n (xss : Vec (Vec A n) m) → group′ m n (concat xss) ≡ xss
-group′-concat zero n [] = refl
-group′-concat (suc m) n (xs ∷ xss) =
-  begin
-    group′ (suc m) n (xs ++ concat xss)
-  ≡⟨ unfold-group′ m n xs xss ⟩
-    xs ∷ group′ m n (concat xss)
-  ≡⟨ cong (xs ∷_) (group′-concat m n xss) ⟩
-    xs ∷ xss
-  ∎
-
--}
 
 module scan-vec {ℓ} (M : Monoid 0ℓ ℓ) where
 
@@ -362,95 +257,6 @@ module InductiveTrie where
 
     Vec↔T : ∀ {s A} → Vec A (# s) ↔ T A s
     Vec↔T {s} = T↔fun ⁻¹ ∘̇ dom (fin↔index s) ∘̇ vec-fun-inverse
-
-  -- T↔ {s} = mk↔′ to from to∘from from∘to
-  --  where
-  --    to : T A s → Vec A (# s)
-  --    to = tabulate ∘ (_∘ {!!}) ∘ lookup
-
-  --    from : Vec A (# s) → T A s
-  --    from = {!!}
-
-  --    to∘from : to ∘ from ≗ id
-  --    to∘from = {!!}
-
-  --    from∘to : from ∘ to ≗ id
-  --    from∘to = {!!}
-
-{-
-  T↔ : ∀ {s A} → T A s ↔ Vec A (# s)
-  T↔ {s} = mk↔′ to from (to∘from s) from∘to
-   where
-     to : ∀ {s A} → T A s → Vec A (# s)
-     to 1̇ = []
-     to (I x) = x ∷ []
-     to (u ⊗ v) = to u ++ to v
-     to (◎ w) = concat (to (map to w))
-
-     from : ∀ {s A} → Vec A (# s) → T A s
-     from {`⊥} [] = 1̇
-     from {`⊤} (x ∷ []) = I x
-     from {s `+ t} zs = from (take (# s) zs) ⊗ from (drop (# s) zs)
-     -- from {s `+ t} zs with splitAt (# s) {# t} zs
-     -- ... | xs , ys , refl = from xs ⊗ from ys
-     from {s `× t} xs = ◎ (map from (from (group′ (# s) (# t) xs)))
-     -- from {s `× t} xs with group (# s) (# t) xs
-     -- ... | xss , refl = ◎ (map from (from xss))
-
-     to∘from : ∀ s → to ∘ from {s} {A} ≗ id
-
-     to∘from `⊥ [] = refl
-     to∘from `⊤ (_ ∷ []) = refl
-     to∘from (s `+ t) zs with splitAt (# s) {# t} zs ; ... | xs , ys , refl =
-       cong₂ _++_ (to∘from s xs) (to∘from t ys)
-     to∘from (s `× t) xs with group (# s) (# t) xs
-     ... | xss , refl =
-       begin
-         concat (to (map to (map from (from {s} xss))))
-       ≡⟨ cong (λ ○ → concat (to ○)) (map-∘ (from {s} xss)) ⟩
-         concat (to (map (to {t} ∘ from) (from {s} xss)))
-       ≡⟨ cong (concat ∘ to) (map-cong (to∘from t) (from {s} xss)) ⟩
-         concat (to (map id (from {s} xss)))
-       ≡⟨ cong (concat ∘ to) (map-id (from {s} xss)) ⟩
-         concat (to (from {s} xss))
-       ≡⟨ cong concat (to∘from s xss) ⟩
-         concat xss
-       ∎
-
-     from∘to : ∀ {s A} → from ∘ to {s} {A} ≗ id
-     from∘to 1̇ = refl
-     from∘to (I _) = refl
-     from∘to {s `+ t} (u ⊗ v) =
-       begin
-         from (to (u ⊗ v))
-       ≡⟨⟩
-         from (to u ++ to v)
-       ≡⟨⟩
-         from (take (# s) (to u ++ to v)) ⊗ from (drop (# s) (to u ++ to v))
-       ≡⟨ cong₂ (λ ○ ● → from ○ ⊗ from ●)
-            (take-++ (to u) (to v)) (drop-++ (to u) (to v)) ⟩
-         from (to u) ⊗ from (to v)
-       ≡⟨ cong₂ _⊗_ (from∘to u) (from∘to v) ⟩
-         u ⊗ v
-       ∎
-     from∘to {s `× t} (◎ w) =
-       begin
-         from (concat (to (map to w)))
-       ≡⟨⟩
-         ◎ (map from (from (group′ (# s) (# t) (concat (to (map to w))))))
-       ≡⟨ cong (λ ○ → ◎ (map from (from ○)))
-            (group′-concat (# s) (# t) (to (map to w))) ⟩
-         ◎ (map from (from (to (map to w))))
-       ≡⟨ cong (λ ○ → ◎ (map from ○)) (from∘to (map to w)) ⟩
-         ◎ (map from (map to w))
-       ≡⟨ cong ◎ (map-∘ w) ⟩
-         ◎ (map (from ∘ to) w)
-       ≡⟨ cong ◎ (map-cong from∘to w) ⟩
-         ◎ (map id w)
-       ≡⟨ cong ◎ (map-id w) ⟩
-         ◎ w
-       ∎
--}
 
 
   module scanˡ {ℓ} (M : Monoid 0ℓ ℓ) where
